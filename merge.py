@@ -8,7 +8,7 @@ doc = """
 Merge, Version {0}.
 
 Usage:
-    merge [options] (--in <FILE>... | -i <FILE>...) (--out <FILE> | -o <FILE>) [--by <COLUMN>...]
+    table-merge [options] (--in <FILE>... | -i <FILE>...) (--out <FILE> | -o <FILE>) [--by <COLUMN>...]
 
 Options:
     -h --help                    Show this screen.
