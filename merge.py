@@ -1,4 +1,4 @@
-#!/usr/bin python
+#!/usr/bin/env python
 import os, sys, pandas
 from docopt import docopt
 
@@ -8,7 +8,7 @@ doc = """
 Merge, Version {0}.
 
 Usage:
-    merge [options] (--in <FILE>.. | -i <FILE>..) [ --out <FILE> | -o <FILE>] [--by <COLUMN>...]
+    merge [options] (--in <FILE>... | -i <FILE>...) (--out <FILE> | -o <FILE>) [--by <COLUMN>...]
 
 Options:
     -h --help                    Show this screen.
@@ -16,7 +16,7 @@ Options:
     --index <COLUMN>             For wide format, the column that forms the rows. [default: None]
     --by <COLUMN>...             For wide format, the columns to merge by. [default: None]
     --in <FILE> -i <FILE>        Input File (path).
-    --out <FILE> -o <FILE>       Output File (path) [default: ./Assembled_Values.csv].
+    --out <FILE> -o <FILE>       Output File (path).
     --style <STYLE>              Output style, either LONG or WIDE [default: LONG]
 """.format(Version)
 
@@ -44,19 +44,27 @@ def run(rawargs):
         print("Error: '{0}' is not a valid style for output!".format(arguments["--style"]))
         sys.exit(1)
 
+    if arguments["--style"] == "WIDE" and arguments["--index"] == "None":
+        if arguments["--by"] != [None]:
+            arguments["--index"] = arguments["--by"][0]
+            arguments["--by"] = arguments["--by"][1:]
+
     itemarraylist = []
-    for item in arguments["--in"]:
+    inputfiles = list(pandas.Series(arguments["--in"]).unique())
+
+    for item in inputfiles:
         try:
             itemarraylist.append(pandas.read_csv(clean_path(item), low_memory=False, converters={arguments["--index"]: str}))
         except:
             print("Could not locate {0}. Ensure that your path is correct.")
             sys.exit(1)
     if arguments["--style"] == "LONG":
-        print("Saving file in format.")
+        print("Saving file in long format.")
         outputarray = pandas.concat(itemarraylist)
     else:
         print("Output file as wide format.")
         longarray = pandas.concat(itemarraylist)
+        arguments["--by"] = list(pandas.Series(arguments["--by"]).unique())
         allcolumns = [arguments["--index"]] + arguments["--by"]
         intermediatearray = longarray.set_index(allcolumns).unstack(arguments["--by"])
         headers_unmerged = intermediatearray.columns.values
